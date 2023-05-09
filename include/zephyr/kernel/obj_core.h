@@ -49,16 +49,33 @@ struct k_obj_core;
  */
 extern sys_dlist_t obj_type_list;
 
+struct k_obj_stats_desc {
+	size_t  raw_size;
+	size_t  query_size;
+
+	int (*raw)(struct k_obj_core *obj_core, void *stats);
+	int (*query)(struct k_obj_core *obj_core, void *stats);
+	int (*reset)(struct k_obj_core *obj_core);
+	int (*disable)(struct k_obj_core *obj_core);
+	int (*enable)(struct k_obj_core *obj_core);
+};
+
 struct k_obj_type {
 	sys_dnode_t    node;   /* Node within list of object types */
 	sys_dlist_t    list;   /* List of objects of this object type */
 	uint32_t       id;     /* Unique type ID */
 	size_t         obj_core_offset;  /* Offset to obj_core field */
+#ifdef CONFIG_OBJ_CORE_STATS
+	struct k_obj_stats_desc *stats_desc;
+#endif
 };
 
 struct k_obj_core {
 	sys_dnode_t        node;   /* Object node within object type's list */
 	struct k_obj_type *type;   /* Object type to which object belongs */
+#ifdef CONFIG_OBJ_CORE_STATS
+	void  *stats;              /* Pointer to kernel object's stats */
+#endif
 };
 
 /**
@@ -139,6 +156,18 @@ static inline void k_obj_type_stats_init(struct k_obj_type *type,
 {
 	type->stats_desc = stats_desc;
 }
+
+/**
+ * @brief Initialize the object core for statistics
+ *
+ * @param obj_core Pointer to the object type
+ * @param stats Pointer to the object raw statistics
+ */
+static inline void k_obj_core_stats_init(struct k_obj_core *obj_core,
+					 void *stats)
+{
+	obj_core->stats = stats;
+}
 #endif
 
 /**
@@ -152,15 +181,6 @@ static inline void k_obj_type_stats_init(struct k_obj_type *type,
  */
 extern void k_obj_core_init(struct k_obj_core *obj_core,
 			    struct k_obj_type *type);
-
-/**
- * @brief Initialize the object type for statistics
- *
- * @param type Pointer to the object type
- * @param desc Pointer to the object type's statistics descriptor
- */
-extern void k_obj_type_stats_init(struct k_obj_type *type,
-				  struct k_obj_stats_desc *desc);
 
 /**
  * @brief Link the kernel object to the kernel object type list
