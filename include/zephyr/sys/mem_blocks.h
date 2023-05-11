@@ -104,6 +104,9 @@ struct sys_mem_blocks {
 	/* Spinlock guarding access to memory block internals */
 	struct k_spinlock  lock;
 #endif
+#ifdef CONFIG_OBJ_CORE_SYS_MEM_BLOCKS
+	struct k_obj_core obj_core;
+#endif
 };
 
 struct sys_multi_mem_blocks {
@@ -125,7 +128,7 @@ struct sys_multi_mem_blocks {
 #define _SYS_MEM_BLOCKS_DEFINE_WITH_EXT_BUF(name, blk_sz, num_blks, buf, mbmod) \
 	_SYS_BITARRAY_DEFINE(_sys_mem_blocks_bitmap_##name,		\
 			     num_blks, mbmod);				\
-	mbmod sys_mem_blocks_t name = {					\
+	mbmod STRUCT_SECTION_ITERABLE(sys_mem_blocks, name) = {         \
 		.info = {num_blks, ilog2(blk_sz)},                      \
 		.buffer = buf,						\
 		.bitmap = &_sys_mem_blocks_bitmap_##name,		\

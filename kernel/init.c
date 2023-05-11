@@ -37,7 +37,6 @@
 #include <zephyr/pm/device_runtime.h>
 LOG_MODULE_REGISTER(os, CONFIG_KERNEL_LOG_LEVEL);
 
-
 BUILD_ASSERT(CONFIG_MP_NUM_CPUS == CONFIG_MP_MAX_NUM_CPUS,
 	     "CONFIG_MP_NUM_CPUS and CONFIG_MP_MAX_NUM_CPUS need to be set the same");
 
@@ -94,6 +93,10 @@ K_KERNEL_PINNED_STACK_ARRAY_DEFINE(z_interrupt_stacks,
 
 extern void idle(void *unused1, void *unused2, void *unused3);
 
+#ifdef CONFIG_OBJ_CORE_SYSTEM
+static struct k_obj_type obj_type_cpu;
+static struct k_obj_type obj_type_kernel;
+#endif
 
 /* LCOV_EXCL_START
  *
@@ -395,6 +398,11 @@ void z_init_cpu(int id)
 	_kernel.cpus[id].usage->track_usage =
 		CONFIG_SCHED_THREAD_USAGE_AUTO_ENABLE;
 #endif
+
+#ifdef CONFIG_OBJ_CORE_SYSTEM
+	k_obj_core_init(K_OBJ_CORE(&_kernel.cpus[id]), &obj_type_cpu);
+	k_obj_core_link(K_OBJ_CORE(&_kernel.cpus[id]));
+#endif
 }
 
 /**
@@ -584,3 +592,34 @@ FUNC_NORETURN void z_cstart(void)
 
 	CODE_UNREACHABLE; /* LCOV_EXCL_LINE */
 }
+
+#ifdef CONFIG_OBJ_CORE_SYSTEM
+static int init_cpu_module(void)
+{
+	/* Initialize CPU object type */
+
+	z_obj_type_init(&obj_type_cpu, OBJ_TYPE_CPU_ID,
+			offsetof(struct _cpu, obj_core));
+
+	return 0;
+}
+
+static int init_kernel_module(void)
+{
+	/* Initialize kernel object type */
+
+	z_obj_type_init(&obj_type_kernel, OBJ_TYPE_KERNEL_ID,
+			offsetof(struct z_kernel, obj_core));
+
+	k_obj_core_init(K_OBJ_CORE(&_kernel), &obj_type_kernel);
+	k_obj_core_link(K_OBJ_CORE(&_kernel));
+
+	return 0;
+}
+
+SYS_INIT(init_cpu_module, PRE_KERNEL_1,
+	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
+
+SYS_INIT(init_kernel_module, PRE_KERNEL_1,
+	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
+#endif

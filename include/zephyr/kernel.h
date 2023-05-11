@@ -1362,6 +1362,9 @@ const char *k_thread_state_str(k_tid_t thread_id, char *buf, size_t buf_size);
  */
 
 struct k_timer {
+#ifdef CONFIG_OBJ_CORE_TIMER
+	struct k_obj_core  obj_core;
+#endif
 	/*
 	 * _timeout structure must be first here if we want to use
 	 * dynamic timer allocation. timeout.node is used in the double-linked
@@ -2127,6 +2130,10 @@ struct k_event {
 	uint32_t          events;
 	struct k_spinlock lock;
 
+#ifdef CONFIG_OBJ_CORE_EVENT
+	struct k_obj_core obj_core;
+#endif
+
 	SYS_PORT_TRACING_TRACKING_FIELD(k_event)
 };
 
@@ -2265,6 +2272,9 @@ __syscall uint32_t k_event_wait_all(struct k_event *event, uint32_t events,
 
 struct k_fifo {
 	struct k_queue _queue;
+#ifdef CONFIG_OBJ_CORE_FIFO
+	struct k_obj_core  obj_core;
+#endif
 };
 
 /**
@@ -2292,11 +2302,13 @@ struct k_fifo {
  *
  * @param fifo Address of the FIFO queue.
  */
-#define k_fifo_init(fifo) \
-	({ \
+#define k_fifo_init(fifo)                                    \
+	({                                                   \
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, init, fifo); \
-	k_queue_init(&(fifo)->_queue); \
-	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, init, fifo); \
+	k_queue_init(&(fifo)->_queue);                       \
+	K_OBJ_CORE_INIT(K_OBJ_CORE(fifo), _obj_type_fifo);   \
+	K_OBJ_CORE_LINK(K_OBJ_CORE(fifo));                   \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, init, fifo);  \
 	})
 
 /**
@@ -2499,6 +2511,9 @@ struct k_fifo {
 
 struct k_lifo {
 	struct k_queue _queue;
+#ifdef CONFIG_OBJ_CORE_LIFO
+	struct k_obj_core  obj_core;
+#endif
 };
 
 /**
@@ -2527,11 +2542,13 @@ struct k_lifo {
  *
  * @param lifo Address of the LIFO queue.
  */
-#define k_lifo_init(lifo) \
-	({ \
+#define k_lifo_init(lifo)                                    \
+	({                                                   \
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_lifo, init, lifo); \
-	k_queue_init(&(lifo)->_queue); \
-	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_lifo, init, lifo); \
+	k_queue_init(&(lifo)->_queue);                       \
+	K_OBJ_CORE_INIT(K_OBJ_CORE(lifo), _obj_type_lifo);   \
+	K_OBJ_CORE_LINK(K_OBJ_CORE(lifo));                   \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_lifo, init, lifo);  \
 	})
 
 /**
@@ -2631,6 +2648,9 @@ struct k_stack {
 
 	uint8_t flags;
 
+#ifdef CONFIG_OBJ_CORE_STACK
+	struct k_obj_core  obj_core;
+#endif
 	SYS_PORT_TRACING_TRACKING_FIELD(k_stack)
 };
 
@@ -2787,6 +2807,10 @@ struct k_mutex {
 	/** Original thread priority */
 	int owner_orig_prio;
 
+#ifdef CONFIG_OBJ_CORE_MUTEX
+	struct k_obj_core obj_core;
+#endif
+
 	SYS_PORT_TRACING_TRACKING_FIELD(k_mutex)
 };
 
@@ -2885,6 +2909,10 @@ __syscall int k_mutex_unlock(struct k_mutex *mutex);
 
 struct k_condvar {
 	_wait_q_t wait_q;
+
+#ifdef CONFIG_OBJ_CORE_CONDVAR
+	struct k_obj_core  obj_core;
+#endif
 };
 
 #define Z_CONDVAR_INITIALIZER(obj)                                             \
@@ -2970,6 +2998,10 @@ struct k_sem {
 	unsigned int limit;
 
 	_POLL_EVENT;
+
+#ifdef CONFIG_OBJ_CORE_SEM
+	struct k_obj_core  obj_core;
+#endif
 
 	SYS_PORT_TRACING_TRACKING_FIELD(k_sem)
 
@@ -4284,6 +4316,9 @@ struct k_msgq {
 	/** Message queue */
 	uint8_t flags;
 
+#ifdef CONFIG_OBJ_CORE_MSGQ
+	struct k_obj_core  obj_core;
+#endif
 	SYS_PORT_TRACING_TRACKING_FIELD(k_msgq)
 };
 /**
@@ -4586,6 +4621,10 @@ struct k_mbox {
 	_wait_q_t rx_msg_queue;
 	struct k_spinlock lock;
 
+#ifdef CONFIG_OBJ_CORE_MAILBOX
+	struct k_obj_core  obj_core;
+#endif
+
 	SYS_PORT_TRACING_TRACKING_FIELD(k_mbox)
 };
 /**
@@ -4707,6 +4746,9 @@ extern void k_mbox_data_get(struct k_mbox_msg *rx_msg, void *buffer);
 
 /** Pipe Structure */
 struct k_pipe {
+#ifdef CONFIG_OBJ_CORE_PIPE
+	struct k_obj_core  obj_core;
+#endif
 	unsigned char *buffer;          /**< Pipe buffer: may be NULL */
 	size_t         size;            /**< Buffer size */
 	size_t         bytes_used;      /**< # bytes used in buffer */
@@ -4919,6 +4961,9 @@ struct k_mem_slab_info {
 };
 
 struct k_mem_slab {
+#ifdef CONFIG_OBJ_CORE_MEM_SLAB
+	struct k_obj_core  obj_core;
+#endif
 	_wait_q_t wait_q;
 	struct k_spinlock lock;
 	char *buffer;
@@ -4928,14 +4973,14 @@ struct k_mem_slab {
 	SYS_PORT_TRACING_TRACKING_FIELD(k_mem_slab)
 };
 
-#define Z_MEM_SLAB_INITIALIZER(obj, slab_buffer, slab_block_size, \
-			       slab_num_blocks)                   \
-	{                                                         \
-	.wait_q = Z_WAIT_Q_INIT(&obj.wait_q),                     \
-	.lock = {},                                               \
-	.buffer = slab_buffer,                                    \
-	.free_list = NULL,                                        \
-	.info = {slab_num_blocks, slab_block_size, 0}             \
+#define Z_MEM_SLAB_INITIALIZER(_slab, _slab_buffer, _slab_block_size, \
+			       _slab_num_blocks)                      \
+	{                                                             \
+	.wait_q = Z_WAIT_Q_INIT(&(_slab).wait_q),                     \
+	.lock = {},                                                   \
+	.buffer = _slab_buffer,                                       \
+	.free_list = NULL,                                            \
+	.info = {_slab_num_blocks, _slab_block_size, 0}               \
 	}
 
 

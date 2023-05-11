@@ -31,6 +31,25 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
+#ifdef CONFIG_OBJ_CORE_THREAD
+static struct k_obj_type  obj_type_thread;
+
+static int init_thread_module(void)
+{
+	/* Initialize mem_slab object type */
+
+#ifdef CONFIG_OBJ_CORE_THREAD
+	z_obj_type_init(&obj_type_thread, OBJ_TYPE_THREAD_ID,
+			offsetof(struct k_thread, obj_core));
+#endif
+
+	return 0;
+}
+
+SYS_INIT(init_thread_module, PRE_KERNEL_1,
+	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
+#endif
+
 #ifdef CONFIG_THREAD_MONITOR
 /* This lock protects the linked list of active threads; i.e. the
  * initial _kernel.threads pointer and the linked list made up of
@@ -534,6 +553,11 @@ char *z_setup_new_thread(struct k_thread *new_thread,
 	char *stack_ptr;
 
 	Z_ASSERT_VALID_PRIO(prio, entry);
+
+#ifdef CONFIG_OBJ_CORE_THREAD
+	k_obj_core_init(K_OBJ_CORE(new_thread), &obj_type_thread);
+	k_obj_core_link(K_OBJ_CORE(new_thread));
+#endif
 
 #ifdef CONFIG_USERSPACE
 	__ASSERT((options & K_USER) == 0U || z_stack_is_user_capable(stack),
