@@ -368,7 +368,7 @@ static inline uint16_t __rtio_compute_mempool_block_index(const struct rtio *r, 
 	uint32_t block_size = r->block_pool->blk_size;
 
 	uintptr_t buff = (uintptr_t)mem_pool->buffer;
-	uint32_t buff_size = mem_pool->num_blocks * block_size;
+	uint32_t buff_size = mem_pool->info.num_blocks * block_size;
 
 	if (addr < buff || addr >= buff + buff_size) {
 		return UINT16_MAX;
@@ -1036,7 +1036,7 @@ static inline int z_impl_rtio_cqe_get_mempool_buffer(const struct rtio *r, struc
 		__ASSERT_NO_MSG(*buff >= r->block_pool->mempool->buffer);
 		__ASSERT_NO_MSG(*buff <
 				r->block_pool->mempool->buffer +
-				r->block_pool->blk_size * r->block_pool->mempool->num_blocks);
+				r->block_pool->blk_size * r->block_pool->mempool->info.num_blocks);
 		return 0;
 	}
 	return -EINVAL;
