@@ -140,7 +140,7 @@ struct _cpu {
 	uint32_t usage0;
 
 #ifdef CONFIG_SCHED_THREAD_USAGE_ALL
-	struct k_cycle_stats usage;
+	struct k_cycle_stats *usage;
 #endif
 #endif
 
@@ -181,6 +181,9 @@ struct z_kernel {
 
 #if defined(CONFIG_THREAD_MONITOR)
 	struct k_thread *threads; /* singly linked list of ALL threads */
+#endif
+#ifdef CONFIG_SCHED_THREAD_USAGE_ALL
+	struct k_cycle_stats usage[CONFIG_MP_MAX_NUM_CPUS];
 #endif
 
 #if defined(CONFIG_SMP) && defined(CONFIG_SCHED_IPI_SUPPORTED)
