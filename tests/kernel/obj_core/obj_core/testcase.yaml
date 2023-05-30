@@ -1,0 +1,6 @@
+tests:
+  kernel.obj_core:
+    tags:
+      - kernel
+      - userspace
+    ignore_faults: true
