@@ -109,7 +109,7 @@ int k_obj_type_walk_unlocked(struct k_obj_type *type,
 }
 
 #ifdef CONFIG_OBJ_CORE_STATS
-int k_obj_stats_register(struct k_obj_core *obj_core, void *stats,
+int k_obj_core_stats_register(struct k_obj_core *obj_core, void *stats,
 			 size_t stats_len)
 {
 	__ASSERT((obj_core != NULL) && (stats != NULL), "NULL parameter");
@@ -140,7 +140,7 @@ int k_obj_stats_register(struct k_obj_core *obj_core, void *stats,
 	return 0;
 }
 
-int k_obj_stats_deregister(struct k_obj_core *obj_core)
+int k_obj_core_stats_deregister(struct k_obj_core *obj_core)
 {
 	__ASSERT((obj_core != NULL), "NULL parameter");
 
@@ -162,11 +162,11 @@ int k_obj_stats_deregister(struct k_obj_core *obj_core)
 	return 0;
 }
 
-int k_obj_stats_raw(struct k_obj_core *obj_core, void *stats,
+int k_obj_core_stats_raw(struct k_obj_core *obj_core, void *stats,
 		    size_t stats_len)
 {
 	int  rv;
-	struct k_obj_stats_desc *desc;
+	struct k_obj_core_stats_desc *desc;
 
 	__ASSERT((obj_core != NULL) && (stats != NULL), "NULL parameter");
 
@@ -200,11 +200,11 @@ int k_obj_stats_raw(struct k_obj_core *obj_core, void *stats,
 	return rv;
 }
 
-int k_obj_stats_query(struct k_obj_core *obj_core, void *stats,
+int k_obj_core_stats_query(struct k_obj_core *obj_core, void *stats,
 		      size_t stats_len)
 {
 	int  rv;
-	struct k_obj_stats_desc *desc;
+	struct k_obj_core_stats_desc *desc;
 
 	__ASSERT((obj_core != NULL) && (stats != NULL), "NULL parameter");
 
@@ -238,10 +238,10 @@ int k_obj_stats_query(struct k_obj_core *obj_core, void *stats,
 	return rv;
 }
 
-int k_obj_stats_reset(struct k_obj_core *obj_core)
+int k_obj_core_stats_reset(struct k_obj_core *obj_core)
 {
 	int  rv;
-	struct k_obj_stats_desc *desc;
+	struct k_obj_core_stats_desc *desc;
 
 	__ASSERT((obj_core != NULL), "NULL parameter");
 
@@ -272,10 +272,10 @@ int k_obj_stats_reset(struct k_obj_core *obj_core)
 	return rv;
 }
 
-int k_obj_stats_disable(struct k_obj_core *obj_core)
+int k_obj_core_stats_disable(struct k_obj_core *obj_core)
 {
 	int  rv;
-	struct k_obj_stats_desc *desc;
+	struct k_obj_core_stats_desc *desc;
 
 	__ASSERT((obj_core != NULL), "NULL parameter");
 
@@ -306,10 +306,10 @@ int k_obj_stats_disable(struct k_obj_core *obj_core)
 	return rv;
 }
 
-int k_obj_stats_enable(struct k_obj_core *obj_core)
+int k_obj_core_stats_enable(struct k_obj_core *obj_core)
 {
 	int  rv;
-	struct k_obj_stats_desc *desc;
+	struct k_obj_core_stats_desc *desc;
 
 	__ASSERT((obj_core != NULL), "NULL parameter");
 

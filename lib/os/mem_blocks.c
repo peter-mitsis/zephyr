@@ -456,6 +456,71 @@ int sys_mem_blocks_runtime_stats_reset_max(sys_mem_blocks_t *mem_block)
 }
 #endif
 
+#ifdef CONFIG_OBJ_CORE_STATS_SYS_MEM_BLOCKS
+static int sys_mem_blocks_stats_raw(struct k_obj_core *obj_core, void *stats)
+{
+	struct sys_mem_blocks *block;
+	k_spinlock_key_t  key;
+
+	block = CONTAINER_OF(obj_core, struct sys_mem_blocks, obj_core);
+
+	key = k_spin_lock(&block->lock);
+
+	memcpy(stats, &block->info, sizeof(struct sys_mem_blocks_info));
+
+	k_spin_unlock(&block->lock, key);
+
+	return 0;
+}
+
+static int sys_mem_blocks_stats_query(struct k_obj_core *obj_core, void *stats)
+{
+	struct sys_mem_blocks *block;
+	k_spinlock_key_t  key;
+	struct sys_memory_stats *ptr = stats;
+
+	block = CONTAINER_OF(obj_core, struct sys_mem_blocks, obj_core);
+
+	key = k_spin_lock(&block->lock);
+
+	ptr->free_bytes = (block->info.num_blocks - block->info.num_used) <<
+			  block->info.blk_sz_shift;
+	ptr->allocated_bytes = block->info.num_used <<
+			       block.info.blk_sz_shift;
+	ptr->max_allocated_bytes = block->info.max_used <<
+				   block.info.blk_sz_shift;
+
+	k_spin_unlock(&block->lock, key);
+
+	return 0;
+}
+
+static int sys_mem_blocks_stats_reset(struct k_obj_core *obj_core)
+{
+	struct sys_mem_blocks *block;
+	k_spinlock_key_t  key;
+
+	block = CONTAINER_OF(obj_core, struct sys_mem_blocks, obj_core);
+
+	key = k_spin_lock(&block->lock);
+	block->info.max_used = block->info.num_used;
+	k_spin_unlock(&block->lock, key);
+
+	return 0;
+}
+
+static struct k_obj_type obj_type_sys_mem_blocks;
+
+static struct k_obj_core_stats_desc sys_mem_blocks_stats_desc = {
+	.raw_size = sizeof(struct sys_mem_blocks_info),
+	.query_size = sizeof(struct sys_memory_stats),
+	.query = sys_mem_blocks_stats_query,
+	.reset = sys_mem_blocks_stats_reset,
+	.disable = NULL,
+	.enable = NULL,
+};
+#endif
+
 #ifdef CONFIG_OBJ_CORE_SYS_MEM_BLOCKS
 static struct k_obj_type obj_type_sys_mem_blocks;
 
@@ -466,11 +531,20 @@ static int init_sys_mem_blocks_module(void)
 	z_obj_type_init(&obj_type_sys_mem_blocks, OBJ_TYPE_MEM_BLOCK_ID,
 			offsetof(struct sys_mem_blocks, obj_core));
 
+#ifdef CONFIG_OBJ_CORE_STATS_SYS_MEM_BLOCKS
+	k_obj_type_stats_init(&obj_type_sys_mem_blocks,
+			      &sys_mem_blocks_stats_desc);
+#endif
+
 	/* Initialize statically defined sys_mem_blocks */
 
 	STRUCT_SECTION_FOREACH(sys_mem_blocks, block) {
 		k_obj_core_init(K_OBJ_CORE(block), &obj_type_sys_mem_blocks);
 		k_obj_core_link(K_OBJ_CORE(block));
+#ifdef CONFIG_OBJ_CORE_STATS_SYS_MEM_BLOCKS
+		k_obj_core_stats_register(K_OBJ_CORE(block), &block->info,
+				     sizeof(struct sys_mem_blocks_info));
+#endif
 	}
 
 	return 0;

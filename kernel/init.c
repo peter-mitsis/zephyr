@@ -96,6 +96,28 @@ extern void idle(void *unused1, void *unused2, void *unused3);
 #ifdef CONFIG_OBJ_CORE_SYSTEM
 static struct k_obj_type obj_type_cpu;
 static struct k_obj_type obj_type_kernel;
+
+#ifdef CONFIG_OBJ_CORE_STATS_SYSTEM
+static struct k_obj_core_stats_desc  cpu_stats_desc = {
+	.raw_size = sizeof(struct k_cycle_stats),
+	.query_size = sizeof(struct k_thread_runtime_stats),
+	.raw   = z_cpu_stats_raw,
+	.query = z_cpu_stats_query,
+	.reset = NULL,
+	.disable = NULL,
+	.enable  = NULL,
+};
+
+static struct k_obj_core_stats_desc  kernel_stats_desc = {
+	.raw_size = sizeof(struct k_cycle_stats) * CONFIG_MP_MAX_NUM_CPUS,
+	.query_size = sizeof(struct k_thread_runtime_stats),
+	.raw   = z_kernel_stats_raw,
+	.query = z_kernel_stats_query,
+	.reset = NULL,
+	.disable = NULL,
+	.enable  = NULL,
+};
+#endif
 #endif
 
 /* LCOV_EXCL_START
@@ -601,6 +623,10 @@ static int init_cpu_module(void)
 	z_obj_type_init(&obj_type_cpu, OBJ_TYPE_CPU_ID,
 			offsetof(struct _cpu, obj_core));
 
+#ifdef CONFIG_OBJ_CORE_STATS_SYSTEM
+	k_obj_type_stats_init(&obj_type_cpu, &cpu_stats_desc);
+#endif
+
 	return 0;
 }
 
@@ -610,6 +636,10 @@ static int init_kernel_module(void)
 
 	z_obj_type_init(&obj_type_kernel, OBJ_TYPE_KERNEL_ID,
 			offsetof(struct z_kernel, obj_core));
+
+#ifdef CONFIG_OBJ_CORE_STATS_SYSTEM
+	k_obj_type_stats_init(&obj_type_kernel, &cpu_stats_desc);
+#endif
 
 	k_obj_core_init(K_OBJ_CORE(&_kernel), &obj_type_kernel);
 	k_obj_core_link(K_OBJ_CORE(&_kernel));

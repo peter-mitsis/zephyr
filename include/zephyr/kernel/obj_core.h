@@ -49,7 +49,7 @@ struct k_obj_core;
  */
 extern sys_dlist_t obj_type_list;
 
-struct k_obj_stats_desc {
+struct k_obj_core_stats_desc {
 	size_t  raw_size;
 	size_t  query_size;
 
@@ -66,7 +66,7 @@ struct k_obj_type {
 	uint32_t       id;     /* Unique type ID */
 	size_t         obj_core_offset;  /* Offset to obj_core field */
 #ifdef CONFIG_OBJ_CORE_STATS
-	struct k_obj_stats_desc *stats_desc;
+	struct k_obj_core_stats_desc *stats_desc;
 #endif
 };
 
@@ -152,7 +152,7 @@ extern int k_obj_type_walk_unlocked(struct k_obj_type *type,
  * @brief Initialize the object type's stats descriptor
  */
 static inline void k_obj_type_stats_init(struct k_obj_type *type,
-					 struct k_obj_stats_desc *stats_desc)
+					 struct k_obj_core_stats_desc *stats_desc)
 {
 	type->stats_desc = stats_desc;
 }
@@ -218,8 +218,8 @@ extern void k_obj_core_unlink(struct k_obj_core *obj_core);
  *
  * @return 0 on success, -errno on failure
  */
-extern int k_obj_stats_register(struct k_obj_core *obj_core, void *stats,
-				size_t stats_len);
+extern int k_obj_core_stats_register(struct k_obj_core *obj_core, void *stats,
+				     size_t stats_len);
 
 /**
  * @brief Deregister kernel object from gathering statistics
@@ -232,7 +232,7 @@ extern int k_obj_stats_register(struct k_obj_core *obj_core, void *stats,
  *
  * @return 0 on success, -errno on failure
  */
-extern int k_obj_stats_deregister(struct k_obj_core *obj_core);
+extern int k_obj_core_stats_deregister(struct k_obj_core *obj_core);
 
 /**
  * @brief Retrieve the raw statistics associated with the kernel object
@@ -246,8 +246,8 @@ extern int k_obj_stats_deregister(struct k_obj_core *obj_core);
  *
  * @return 0 on success, -errno on failure
  */
-extern int k_obj_stats_raw(struct k_obj_core *obj_core, void *stats,
-			   size_t stats_len);
+extern int k_obj_core_stats_raw(struct k_obj_core *obj_core, void *stats,
+				size_t stats_len);
 
 /**
  * @brief Retrieve the statistics associated with the kernel object
@@ -261,8 +261,8 @@ extern int k_obj_stats_raw(struct k_obj_core *obj_core, void *stats,
  *
  * @return 0 on success, -errno on failure
  */ 
-extern int k_obj_stats_query(struct k_obj_core *obj_core, void *stats,
-			     size_t stats_len);
+extern int k_obj_core_stats_query(struct k_obj_core *obj_core, void *stats,
+				  size_t stats_len);
 
 /**
  * @brief Reset the stats associated with the kernel object
@@ -274,20 +274,20 @@ extern int k_obj_stats_query(struct k_obj_core *obj_core, void *stats,
  *
  * @return 0 on success, -errno on failure
  */
-extern int k_obj_stats_reset(struct k_obj_core *obj_core);
+extern int k_obj_core_stats_reset(struct k_obj_core *obj_core);
 
 /**
  * @brief Stop gathering the stats associated with the kernel object
  *
  * This function temporarily stops the gathering of statistics associated with
  * the kernel object core specified by @a obj_core. The gathering of statistics
- * can be resumed by invoking :c:func :`k_obj_stats_enable`.
+ * can be resumed by invoking :c:func :`k_obj_core_stats_enable`.
  *
  * @param obj_core Pointer to kernel object core
  *
  * @return 0 on success, -errno on failure
  */
-extern int k_obj_stats_disable(struct k_obj_core *obj_core);
+extern int k_obj_core_stats_disable(struct k_obj_core *obj_core);
 
 /**
  * @brief Reset the stats associated with the kernel object
@@ -299,5 +299,5 @@ extern int k_obj_stats_disable(struct k_obj_core *obj_core);
  *
  * @return 0 on success, -errno on failure
  */
-extern int k_obj_stats_enable(struct k_obj_core *obj_core);
+extern int k_obj_core_stats_enable(struct k_obj_core *obj_core);
 #endif /* __KERNEL_OBJ_CORE_H__ */
