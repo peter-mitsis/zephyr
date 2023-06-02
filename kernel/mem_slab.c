@@ -76,7 +76,9 @@ static int k_mem_slab_stats_reset(struct k_obj_core *obj_core)
 	slab = CONTAINER_OF(obj_core, struct k_mem_slab, obj_core);
 	key = k_spin_lock(&slab->lock);
 
+#ifdef CONFIG_MEM_SLAB_TRACE_MAX_UTILIZATION
 	slab->info.max_used = slab->info.num_used;
+#endif
 
 	k_spin_unlock(&slab->lock, key);
 
