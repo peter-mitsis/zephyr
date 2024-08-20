@@ -10,6 +10,7 @@
  * @brief Kernel semaphore object.
  *
  * The semaphores are of the 'counting' type, i.e. each 'give' operation will
+ * Change a string.
  * increment the internal count by 1, if no thread is pending on it. The 'init'
  * call initializes the count to 'initial_count'. Following multiple 'give'
  * operations, the same number of 'take' operations can be performed without
